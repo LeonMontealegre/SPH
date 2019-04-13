@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta name="description" content="Smoothed Particle Hydrodynamics">
+        <meta name="viewport" content="width=device-width", initial-scale="1">
+        <meta charset="utf-8">
+
+        <title>Smoothed Particle Hydrodynamics</title>
+        <link rel="stylesheet" href="stylesheet.css">
+    </head>
+    <body onload="start();">
+        <div id="menutop" class="table">
+            <div id="info" class="info">
+                <div id="temp">
+                    Temperature at Cursor: 0.0000000000
+                </div>
+                <br />
+                <div id="mat">
+                    Thermal diffusity at Cursor: 0.0000000000
+                </div>
+            </div>
+            <div id="options" class="options">
+                <form>
+                    <input type="radio" onclick="displayType = 1;" name="display" value="1" checked> Display 1<br>
+                    <input type="radio" onclick="displayType = 0;" name="display" value="0"> Display 2<br>
+                </form>
+                <input type="button" onclick="start();" value="Regenerate">
+                <input type="range" onchange="timeChange();" id="timeSlider" value="0.01" min="0.001" max="0.01" step="0.001">
+                Time
+            </div>
+        </div>
+        <div id="main">
+            <canvas id="canvas">
+                Your browser doesn't appear to support the
+                <code>&lt;canvas&gt;</code> element.
+            </canvas>
+
+            <script src="vector.js"></script>
+            <script src="particle.js"></script>
+            <!-- <script src="spring.js"></script> -->
+            <script src="sph2.js"></script>
+        </div>
+    </body>
+</html>
