@@ -331,9 +331,9 @@ function step() {
                 const r = newPositions[i].sub(newPositions[jj]);
                 const r2 = r.len2();
 
-                const scorr = -PRESSURE_CONSTANT * Math.pow(Wpoly6(r2) / KERNEL_RADIUS_CONSTANT_VALUE, KERNEL_N);
+                // const scorr = -PRESSURE_CONSTANT * Math.pow(Wpoly6(r2) / KERNEL_RADIUS_CONSTANT_VALUE, KERNEL_N);
 
-                pos = pos.add(Wpoly6Gradient(r, r2).scl(lambdas[i] + lambdas[jj] + scorr));
+                pos = pos.add(Wpoly6Gradient(r, r2).scl(lambdas[i] + lambdas[jj]));
             }
             deltaPositions[i] = pos.scl(1.0 / particle.restDensity);
         }
