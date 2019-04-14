@@ -78,8 +78,9 @@ function start() {
     //     }
     // }
 
-    const dx = (box.r - box.l) / 25;
-    const dy = (box.t - box.b) / 25;
+    const dx = (box.r - box.l) / 20;
+    const dy = (box.t - box.b) / 20;
+
     for (let x = box.l; x < box.r; x += dx) {
         for (let y = box.b; y < box.t; y += dy) {
             particles.push(new Particle(V(x+(box.r - box.l)/100,
@@ -344,7 +345,25 @@ function step() {
     }
 
     for (let i = 0; i < particles.length; i++) {
-        particles[i].vel = (newPositions[i].sub(particles[i].pos)).scl(1.0 / dt);
+        const particle = particles[i];
+        const neighbors = allNeighbors[i];
+
+        particles[i].vel = (newPositions[i].sub(particle.pos)).scl(1.0 / dt);
+
+        // const c = 0.0000001;
+        // let xsph = V(0,0);
+        // for (let j = 0; j < neighbors.length; j++) {
+        //     const jj = neighbors[j];
+        //     if (i == jj)
+        //         continue;
+        //
+        //     const neighbor = particles[jj];
+        //
+        //     xsph = xsph.add((neighbor.vel.sub(particle.vel).scl(c*Wpoly6(newPositions[i].sub(newPositions[jj]).len2()))));
+        // }
+        //
+        // particles[i].vel = particles[i].vel.add(xsph);
+
         particles[i].pos = newPositions[i];
 
         if (particles[i].pos.x > box.r+1 || particles[i].pos.x < box.l-1 || particles[i].pos.x > box.t+1 || particles[i].pos.y < box.b-1) {
