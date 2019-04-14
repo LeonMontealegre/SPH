@@ -155,13 +155,16 @@ function collisionForce(particle) {
     }
 }
 
-function collectNeighbors(i, newPositions) {
+function collectNeighbors(i, newPositions = undefined) {
     let neighbors = [];
     for (let j = 0; j < particles.length; j++) {
-        if (i == j)
-            continue;
+        // if (i == j)
+        //     continue;
 
-        if (newPositions[i].distanceTo(newPositions[j]) < h)
+        const p1 = (newPositions ? newPositions[i] : particles[i].pos);
+        const p2 = (newPositions ? newPositions[j] : particles[j].pos);
+
+        if (p1.sub(p2).len2() < h*h)
             neighbors.push(j);
     }
     return neighbors;
@@ -169,34 +172,40 @@ function collectNeighbors(i, newPositions) {
 
 var t = 0;
 
-function step2() {
+
+function step() {
     walls[0].pos.x = Math.sin(t*5)/10.0 + box.l;
     // particles.push(new Particle(V(box.r - 0.05,
-    //                               box.t), 0.02, REST_DENSITY/2));
+    //                               box.t), 0.02, REST_DENSITY));
 
+
+    let allNeighbors = new Array(particles.length).fill([]);
+    for (let i = 0; i < particles.length; i++) {
+        // find neighbors
+        allNeighbors[i] = collectNeighbors(i);
+    }
 
     // Calculate density and pressure
     for (let i = 0; i < particles.length; i++) {
         const particle = particles[i];
+        const neighbors = allNeighbors[i];
 
         // particle.neighbors = [];
         particle.density = particle.mass * Wpoly6(0);
 
         // Find neighbors
-        for (let j = 0; j < particles.length; j++) {
-            if (i == j)
+        for (let j = 0; j < neighbors.length; j++) {
+            const jj = neighbors[j];
+            if (i == jj)
                 continue;
 
-            const neighbor = particles[j];
+            const neighbor = particles[jj];
 
             const r = particle.pos.sub(neighbor.pos);
             const r2 = r.len2();
 
-            if (r2 <= h*h) {
-                const density = neighbor.mass * Wpoly6(r2);
-                particle.density += density;
-                // particle.neighbors.push(neighborParticle);
-            }
+            const density = neighbor.mass * Wpoly6(r2);
+            particle.density += density;
         }
 
         particle.pressure = particle.gasConstant * (particle.density - particle.restDensity);
@@ -205,6 +214,7 @@ function step2() {
     // Calculate forces
     for (let i = 0; i < particles.length; i++) {
         const particle = particles[i];
+        const neighbors = allNeighbors[i];
 
         let f_pressure = V(0, 0);
         let f_viscosity = V(0, 0);
@@ -217,18 +227,19 @@ function step2() {
 
         let neighborCount = 0;
 
-        for (let j = 0; j < particles.length; j++) {//particle.neighbors.length; j++) {
-            const neighbor = particles[j];//.neighbors[j];
+        for (let j = 0; j < neighbors.length; j++) {//particle.neighbors.length; j++) {
+            const jj = neighbors[j];
+            const neighbor = particles[jj];//.neighbors[j];
 
             const r = particle.pos.sub(neighbor.pos);
             const r2 = r.len2();
 
-            if (r2 <= h*h) {
+            // if (r2 <= h*h) {
                 neighborCount++;
                 const poly6Gradient = Wpoly6Gradient(r, r2);
                 const spikyGradient = WspikyGradient(r, r2);
 
-                if (i != j) {
+                if (i != jj) {
                     f_pressure = f_pressure.add(spikyGradient.scl(-neighbor.mass * (particle.pressure + neighbor.pressure) / (2 * neighbor.density)));
 
                     f_viscosity = f_viscosity.add((neighbor.vel.sub(particle.vel)).scl(
@@ -239,7 +250,7 @@ function step2() {
                 colorFieldNormal = colorFieldNormal.add(poly6Gradient.scl(neighbor.mass / neighbor.density));
 
                 colorFieldLaplacian += neighbor.mass * Wpoly6Laplacian(r2) / neighbor.density;
-            }
+            // }
         }
 
         const colorFieldNormalMagnitude = colorFieldNormal.len();
@@ -255,11 +266,6 @@ function step2() {
     }
 
     t += dt;
-}
-
-
-function step() {
-    step2();
 
     let newPositions = new Array(particles.length).fill(V(0,0));
 
@@ -268,8 +274,6 @@ function step() {
         particles[i].vel = particles[i].vel.add( particles[i].acc.scl(dt) ); // apply exterior forces
         newPositions[i] = particles[i].pos.add( particles[i].vel.scl(dt) ); // predict position
     }
-
-    let allNeighbors = new Array(particles.length).fill([]);
 
     for (let i = 0; i < particles.length; i++) {
         // find neighbors
@@ -290,6 +294,8 @@ function step() {
 
             for (let j = 0; j < neighbors.length; j++) {
                 let jj = neighbors[j];
+                if (i == jj)
+                    continue;
                 const neighbor = particles[jj];
 
                 const r = newPositions[i].sub(newPositions[jj]);
@@ -317,14 +323,17 @@ function step() {
             let pos = V(0,0);
             for (let j = 0; j < neighbors.length; j++) {
                 let jj = neighbors[j];
+                if (i == jj)
+                    continue;
+
                 const neighbor = particles[jj];
 
                 const r = newPositions[i].sub(newPositions[jj]);
                 const r2 = r.len2();
 
-                // const scorr = -PRESSURE_CONSTANT * Math.pow(Wpoly6(r2) / KERNEL_RADIUS_CONSTANT_VALUE, KERNEL_N);
+                const scorr = -PRESSURE_CONSTANT * Math.pow(Wpoly6(r2) / KERNEL_RADIUS_CONSTANT_VALUE, KERNEL_N);
 
-                pos = pos.add(Wpoly6Gradient(r, r2).scl(lambdas[i] + lambdas[jj]));
+                pos = pos.add(Wpoly6Gradient(r, r2).scl(lambdas[i] + lambdas[jj] + scorr));
             }
             deltaPositions[i] = pos.scl(1.0 / particle.restDensity);
         }
