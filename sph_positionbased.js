@@ -216,9 +216,9 @@ function step() {
         const particle = particles[i];
         const neighbors = allNeighbors[i];
 
-        let f_pressure = V(0, 0);
+        let f_pressure  = V(0, 0);
         let f_viscosity = V(0, 0);
-        let f_surface = V(0, 0);
+        let f_surface   = V(0, 0);
 
         let f_gravity = g.scl(particle.density);
 
@@ -227,30 +227,28 @@ function step() {
 
         let neighborCount = 0;
 
-        for (let j = 0; j < neighbors.length; j++) {//particle.neighbors.length; j++) {
+        for (let j = 0; j < neighbors.length; j++) {
             const jj = neighbors[j];
-            const neighbor = particles[jj];//.neighbors[j];
+            const neighbor = particles[jj];
 
             const r = particle.pos.sub(neighbor.pos);
             const r2 = r.len2();
 
-            // if (r2 <= h*h) {
-                neighborCount++;
-                const poly6Gradient = Wpoly6Gradient(r, r2);
-                const spikyGradient = WspikyGradient(r, r2);
+            neighborCount++;
+            const poly6Gradient = Wpoly6Gradient(r, r2);
+            const spikyGradient = WspikyGradient(r, r2);
 
-                if (i != jj) {
-                    f_pressure = f_pressure.add(spikyGradient.scl(-neighbor.mass * (particle.pressure + neighbor.pressure) / (2 * neighbor.density)));
+            if (i != jj) {
+                f_pressure = f_pressure.add(spikyGradient.scl(-neighbor.mass * (particle.pressure + neighbor.pressure) / (2 * neighbor.density)));
 
-                    f_viscosity = f_viscosity.add((neighbor.vel.sub(particle.vel)).scl(
-                                    (particle.viscosity + neighbor.viscosity) / 2 * neighbor.mass *
-                                    WviscosityLaplacian(r2) / neighbor.density));
-                }
+                f_viscosity = f_viscosity.add((neighbor.vel.sub(particle.vel)).scl(
+                                (particle.viscosity + neighbor.viscosity) / 2 * neighbor.mass *
+                                WviscosityLaplacian(r2) / neighbor.density));
+            }
 
-                colorFieldNormal = colorFieldNormal.add(poly6Gradient.scl(neighbor.mass / neighbor.density));
+            colorFieldNormal = colorFieldNormal.add(poly6Gradient.scl(neighbor.mass / neighbor.density));
 
-                colorFieldLaplacian += neighbor.mass * Wpoly6Laplacian(r2) / neighbor.density;
-            // }
+            colorFieldLaplacian += neighbor.mass * Wpoly6Laplacian(r2) / neighbor.density;
         }
 
         const colorFieldNormalMagnitude = colorFieldNormal.len();
@@ -267,10 +265,10 @@ function step() {
 
     t += dt;
 
-    let newPositions = new Array(particles.length).fill(V(0,0));
 
+    // Apply positional-based fluid constraints
+    let newPositions = new Array(particles.length).fill(V(0,0));
     for (let i = 0; i < particles.length; i++) {
-        // particles[i].acc = V(0,0);
         particles[i].vel = particles[i].vel.add( particles[i].acc.scl(dt) ); // apply exterior forces
         newPositions[i] = particles[i].pos.add( particles[i].vel.scl(dt) ); // predict position
     }
