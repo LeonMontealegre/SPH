@@ -78,8 +78,8 @@ function start() {
     //     }
     // }
 
-    const dx = (box.r - box.l) / 20;
-    const dy = (box.t - box.b) / 20;
+    const dx = (box.r - box.l) / 25;
+    const dy = (box.t - box.b) / 25;
 
     for (let x = box.l; x < box.r; x += dx) {
         for (let y = box.b; y < box.t; y += dy) {
@@ -177,7 +177,7 @@ var t = 0;
 function step() {
     walls[0].pos.x = Math.sin(t*5)/10.0 + box.l;
     // particles.push(new Particle(V(box.r - 0.05,
-    //                               box.t), 0.02, REST_DENSITY));
+    //                               box.t)));
 
 
     let allNeighbors = new Array(particles.length).fill([]);
